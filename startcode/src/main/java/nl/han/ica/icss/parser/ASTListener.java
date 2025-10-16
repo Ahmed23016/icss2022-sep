@@ -22,14 +22,23 @@ public class ASTListener extends ICSSBaseListener {
 	private AST ast;
 
 	//Use this to keep track of the parent nodes when recursively traversing the ast
-	private IHANStack<ASTNode> currentContainer;
+	private Stack currentContainer;
 
 	public ASTListener() {
 		ast = new AST();
-		//currentContainer = new HANStack<>();
+		currentContainer = new Stack();
 	}
     public AST getAST() {
         return ast;
     }
-    
+
+	@Override
+	public void enterStylesheet(ICSSParser.StylesheetContext ctx){
+		Stylesheet stylesheet = new Stylesheet();
+		currentContainer.push(stylesheet);
+
+
+	}
+
+
 }

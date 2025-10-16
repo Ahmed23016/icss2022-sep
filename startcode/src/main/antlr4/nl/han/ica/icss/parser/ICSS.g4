@@ -45,5 +45,10 @@ ASSIGNMENT_OPERATOR: ':=';
 
 
 //--- PARSER: ---
-stylesheet: EOF;
+stylesheet:stylerule;
+stylerule:id_selector OPEN_BRACE declaration CLOSE_BRACE;
+id_selector: ID_IDENT;
+declaration: property COLON pixel_literal SEMICOLON;
+property: LOWER_IDENT;
+pixel_literal: PIXELSIZE;
 
