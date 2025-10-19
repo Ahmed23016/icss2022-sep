@@ -33,11 +33,61 @@ public class ASTListener extends ICSSBaseListener {
     }
 
 	@Override
-	public void enterStylesheet(ICSSParser.StylesheetContext ctx){
+	public void enterStylesheet(ICSSParser.StylesheetContext ctx) {
 		Stylesheet stylesheet = new Stylesheet();
 		currentContainer.push(stylesheet);
+	}
 
+	@Override
+	public void exitStylesheet(ICSSParser.StylesheetContext ctx) {
+		Stylesheet stylesheet = (Stylesheet) currentContainer.pop();
+		ast.root = stylesheet;
+	}
 
+	@Override
+	public void enterStylerule(ICSSParser.StyleruleContext ctx) {
+		Stylerule rule = new Stylerule();
+		currentContainer.push(rule);
+	}
+
+	@Override
+	public void exitStylerule(ICSSParser.StyleruleContext ctx) {
+		Stylerule rule = (Stylerule) currentContainer.pop();
+		((Stylesheet) currentContainer.peek()).addChild(rule);
+	}
+
+	@Override
+	public void enterId_selector(ICSSParser.Id_selectorContext ctx) {
+		String name = ctx.ID_IDENT().getText().substring(1); // zonder '#'
+		IdSelector selector = new IdSelector(name);
+		((Stylerule) currentContainer.peek()).selectors.add(selector);
+	}
+
+	@Override
+	public void enterDeclaration(ICSSParser.DeclarationContext ctx) {
+		Declaration declaration = new Declaration();
+		currentContainer.push(declaration);
+	}
+
+	@Override
+	public void exitDeclaration(ICSSParser.DeclarationContext ctx) {
+		Declaration declaration = (Declaration) currentContainer.pop();
+		((Stylerule) currentContainer.peek()).addChild(declaration);
+	}
+
+	@Override
+	public void enterProperty(ICSSParser.PropertyContext ctx) {
+		String name = ctx.LOWER_IDENT().getText();
+		PropertyName property = new PropertyName(name);
+		((Declaration) currentContainer.peek()).property = property;
+	}
+
+	@Override
+	public void enterPixel_literal(ICSSParser.Pixel_literalContext ctx) {
+		String text = ctx.PIXELSIZE().getText();
+		int valuewuithoutpixel = Integer.parseInt(text.replace("px", ""));
+		PixelLiteral literal = new PixelLiteral(valuewuithoutpixel);
+		((Declaration) currentContainer.peek()).expression = literal;
 	}
 
 
