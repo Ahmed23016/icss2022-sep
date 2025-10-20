@@ -57,6 +57,19 @@ public class ASTListener extends ICSSBaseListener {
 	}
 
 	@Override
+	public void enterVariable_assignment(ICSSParser.Variable_assignmentContext ctx){
+
+		VariableAssignment va = new VariableAssignment();
+		currentContainer.push(va);
+		System.out.println(ctx.getText());
+	}
+
+	@Override
+	public void exitVariable_assignment(ICSSParser.Variable_assignmentContext ctx){
+		VariableAssignment va = (VariableAssignment) currentContainer.pop();
+		((Stylesheet) currentContainer.peek()).addChild(va);
+	}
+	@Override
 	public void enterId_selector(ICSSParser.Id_selectorContext ctx) {
 		String name = ctx.ID_IDENT().getText().substring(1); // zonder '#'
 		IdSelector selector = new IdSelector(name);
@@ -69,6 +82,14 @@ public class ASTListener extends ICSSBaseListener {
 		ClassSelector selector = new ClassSelector(name);
 		((Stylerule) currentContainer.peek()).selectors.add(selector);
 	}
+
+	@Override
+	public void enterTag_selector(ICSSParser.Tag_selectorContext ctx) {
+		String name = ctx.LOWER_IDENT().getText();
+		TagSelector selector = new TagSelector(name);
+		((Stylerule) currentContainer.peek()).selectors.add(selector);
+	}
+
 
 	@Override
 	public void enterDeclaration(ICSSParser.DeclarationContext ctx) {
@@ -103,6 +124,8 @@ public class ASTListener extends ICSSBaseListener {
 		ColorLiteral literal = new ColorLiteral(colorValue);
 		((Declaration) currentContainer.peek()).expression = literal;
 	}
+
+
 
 
 }
