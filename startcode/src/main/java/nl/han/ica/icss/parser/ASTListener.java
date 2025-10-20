@@ -63,6 +63,8 @@ public class ASTListener extends ICSSBaseListener {
 		((Stylerule) currentContainer.peek()).selectors.add(selector);
 	}
 
+		
+
 	@Override
 	public void enterDeclaration(ICSSParser.DeclarationContext ctx) {
 		Declaration declaration = new Declaration();
