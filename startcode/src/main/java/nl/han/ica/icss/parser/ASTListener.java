@@ -63,7 +63,12 @@ public class ASTListener extends ICSSBaseListener {
 		((Stylerule) currentContainer.peek()).selectors.add(selector);
 	}
 
-		
+	@Override
+	public void enterClass_selector(ICSSParser.Class_selectorContext ctx) {
+		String name = ctx.CLASS_IDENT().getText().substring(1);
+		ClassSelector selector = new ClassSelector(name);
+		((Stylerule) currentContainer.peek()).selectors.add(selector);
+	}
 
 	@Override
 	public void enterDeclaration(ICSSParser.DeclarationContext ctx) {
@@ -89,6 +94,13 @@ public class ASTListener extends ICSSBaseListener {
 		String text = ctx.PIXELSIZE().getText();
 		int valuewuithoutpixel = Integer.parseInt(text.replace("px", ""));
 		PixelLiteral literal = new PixelLiteral(valuewuithoutpixel);
+		((Declaration) currentContainer.peek()).expression = literal;
+	}
+
+	@Override
+	public void enterColor_literal(ICSSParser.Color_literalContext ctx) {
+		String colorValue = ctx.COLOR().getText();
+		ColorLiteral literal = new ColorLiteral(colorValue);
 		((Declaration) currentContainer.peek()).expression = literal;
 	}
 
