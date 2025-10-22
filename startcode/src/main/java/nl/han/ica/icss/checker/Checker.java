@@ -22,7 +22,9 @@ public class Checker {
 
     private void checkStylesheet(Stylesheet stylesheet) {
         for(ASTNode child: stylesheet.getChildren()){
-            checkStylerule((Stylerule) child);
+            if(child instanceof Stylerule){
+                checkStylerule((Stylerule) child);
+            }
         }
     }
     private void checkStylerule(Stylerule stylerule) {

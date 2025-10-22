@@ -2,130 +2,158 @@ package nl.han.ica.icss.parser;
 
 import java.util.Stack;
 
-
-import nl.han.ica.datastructures.IHANStack;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
-import nl.han.ica.icss.ast.operations.AddOperation;
-import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.operations.SubtractOperation;
-import nl.han.ica.icss.ast.selectors.ClassSelector;
-import nl.han.ica.icss.ast.selectors.IdSelector;
-import nl.han.ica.icss.ast.selectors.TagSelector;
+import nl.han.ica.icss.ast.operations.*;
+import nl.han.ica.icss.ast.selectors.*;
 
-/**
- * This class extracts the ICSS Abstract Syntax Tree from the Antlr Parse tree.
- */
 public class ASTListener extends ICSSBaseListener {
-	
-	//Accumulator attributes:
-	private AST ast;
 
-	//Use this to keep track of the parent nodes when recursively traversing the ast
-	private Stack currentContainer;
+	private AST ast;
+	private Stack<ASTNode> currentContainer;
+	private Stack<Expression> exprStack = new Stack<>();
 
 	public ASTListener() {
 		ast = new AST();
-		currentContainer = new Stack();
+		currentContainer = new Stack<>();
 	}
-    public AST getAST() {
-        return ast;
-    }
+
+	public AST getAST() {
+		return ast;
+	}
+
 
 	@Override
 	public void enterStylesheet(ICSSParser.StylesheetContext ctx) {
-		Stylesheet stylesheet = new Stylesheet();
-		currentContainer.push(stylesheet);
+		Stylesheet sheet = new Stylesheet();
+		currentContainer.push(sheet);
 	}
 
 	@Override
 	public void exitStylesheet(ICSSParser.StylesheetContext ctx) {
-		Stylesheet stylesheet = (Stylesheet) currentContainer.pop();
-		ast.root = stylesheet;
+		ast.root = (Stylesheet) currentContainer.pop();
 	}
 
 	@Override
-	public void enterStylerule(ICSSParser.StyleruleContext ctx) {
+	public void enterStyleRule(ICSSParser.StyleRuleContext ctx) {
 		Stylerule rule = new Stylerule();
 		currentContainer.push(rule);
 	}
 
 	@Override
-	public void exitStylerule(ICSSParser.StyleruleContext ctx) {
+	public void exitStyleRule(ICSSParser.StyleRuleContext ctx) {
 		Stylerule rule = (Stylerule) currentContainer.pop();
 		((Stylesheet) currentContainer.peek()).addChild(rule);
 	}
 
 	@Override
-	public void enterVariable_assignment(ICSSParser.Variable_assignmentContext ctx){
-
-		VariableAssignment va = new VariableAssignment();
-		currentContainer.push(va);
-		System.out.println(ctx.getText());
-	}
-
-	@Override
-	public void exitVariable_assignment(ICSSParser.Variable_assignmentContext ctx){
-		VariableAssignment va = (VariableAssignment) currentContainer.pop();
-		((Stylesheet) currentContainer.peek()).addChild(va);
-	}
-	@Override
-	public void enterId_selector(ICSSParser.Id_selectorContext ctx) {
-		String name = ctx.ID_IDENT().getText().substring(1); // zonder '#'
-		IdSelector selector = new IdSelector(name);
-		((Stylerule) currentContainer.peek()).selectors.add(selector);
-	}
-
-	@Override
-	public void enterClass_selector(ICSSParser.Class_selectorContext ctx) {
-		String name = ctx.CLASS_IDENT().getText().substring(1);
-		ClassSelector selector = new ClassSelector(name);
-		((Stylerule) currentContainer.peek()).selectors.add(selector);
-	}
-
-	@Override
-	public void enterTag_selector(ICSSParser.Tag_selectorContext ctx) {
-		String name = ctx.LOWER_IDENT().getText();
-		TagSelector selector = new TagSelector(name);
-		((Stylerule) currentContainer.peek()).selectors.add(selector);
-	}
-
-
-	@Override
 	public void enterDeclaration(ICSSParser.DeclarationContext ctx) {
-		Declaration declaration = new Declaration();
-		currentContainer.push(declaration);
+		Declaration decl = new Declaration();
+		currentContainer.push(decl);
 	}
 
 	@Override
 	public void exitDeclaration(ICSSParser.DeclarationContext ctx) {
-		Declaration declaration = (Declaration) currentContainer.pop();
-		((Stylerule) currentContainer.peek()).addChild(declaration);
+		Declaration decl = (Declaration) currentContainer.pop();
+		ASTNode parent = currentContainer.peek();
+		if (parent instanceof Stylerule)
+			((Stylerule) parent).addChild(decl);
+		else if (parent instanceof IfClause)
+			((IfClause) parent).body.add(decl);
 	}
+
 
 	@Override
 	public void enterProperty(ICSSParser.PropertyContext ctx) {
-		String name = ctx.LOWER_IDENT().getText();
-		PropertyName property = new PropertyName(name);
-		((Declaration) currentContainer.peek()).property = property;
+		PropertyName prop = new PropertyName(ctx.LOWERIDENT().getText());
+		((Declaration) currentContainer.peek()).property = prop;
+	}
+
+
+	@Override
+	public void enterIdSelector(ICSSParser.IdSelectorContext ctx) {
+		IdSelector selector = new IdSelector(ctx.IDIDENT().getText().substring(1));
+		((Stylerule) currentContainer.peek()).selectors.add(selector);
 	}
 
 	@Override
-	public void enterPixel_literal(ICSSParser.Pixel_literalContext ctx) {
-		String text = ctx.PIXELSIZE().getText();
-		int valuewuithoutpixel = Integer.parseInt(text.replace("px", ""));
-		PixelLiteral literal = new PixelLiteral(valuewuithoutpixel);
-		((Declaration) currentContainer.peek()).expression = literal;
+	public void enterClassSelector(ICSSParser.ClassSelectorContext ctx) {
+		ClassSelector selector = new ClassSelector(ctx.CLASSIDENT().getText().substring(1));
+		((Stylerule) currentContainer.peek()).selectors.add(selector);
 	}
 
 	@Override
-	public void enterColor_literal(ICSSParser.Color_literalContext ctx) {
-		String colorValue = ctx.COLOR().getText();
-		ColorLiteral literal = new ColorLiteral(colorValue);
-		((Declaration) currentContainer.peek()).expression = literal;
+	public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
+		TagSelector selector = new TagSelector(ctx.LOWERIDENT().getText());
+		((Stylerule) currentContainer.peek()).selectors.add(selector);
 	}
 
 
+	@Override
+	public void enterVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
+		VariableAssignment va = new VariableAssignment();
+		va.name = new VariableReference(ctx.CAPITALIDENT().getText());
+		currentContainer.push(va);
+	}
+
+	@Override
+	public void exitVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
+		VariableAssignment va = (VariableAssignment) currentContainer.pop();
+		((Stylesheet) currentContainer.peek()).addChild(va);
+	}
 
 
+	@Override
+	public void enterIfClause(ICSSParser.IfClauseContext ctx) {
+		IfClause clause = new IfClause();
+		currentContainer.push(clause);
+	}
+
+	@Override
+	public void exitIfClause(ICSSParser.IfClauseContext ctx) {
+		IfClause clause = (IfClause) currentContainer.pop();
+		ASTNode parent = currentContainer.peek();
+		if (parent instanceof Stylerule)
+			((Stylerule) parent).body.add(clause);
+		else if (parent instanceof IfClause)
+			((IfClause) parent).body.add(clause);
+	}
+
+
+	@Override
+	public void enterVariableReference(ICSSParser.VariableReferenceContext ctx) {
+		exprStack.push(new VariableReference(ctx.CAPITALIDENT().getText()));
+	}
+
+	@Override
+	public void enterLiteral(ICSSParser.LiteralContext ctx) {
+		if (ctx.PIXELSIZE() != null) {
+			int val = Integer.parseInt(ctx.PIXELSIZE().getText().replace("px", ""));
+			exprStack.push(new PixelLiteral(val));
+		} else if (ctx.PERCENTAGE() != null) {
+			int val = Integer.parseInt(ctx.PERCENTAGE().getText().replace("%", ""));
+			exprStack.push(new PercentageLiteral(val));
+		} else if (ctx.NUMBER() != null) {
+			int val = Integer.parseInt(ctx.NUMBER().getText());
+			exprStack.push(new ScalarLiteral(val));
+		} else if (ctx.COLOR() != null) {
+			exprStack.push(new ColorLiteral(ctx.COLOR().getText()));
+		} else if (ctx.TRUE() != null || ctx.FALSE() != null) {
+			boolean val = ctx.TRUE() != null;
+			exprStack.push(new BoolLiteral(val));
+		}
+	}
+
+	@Override
+	public void exitExpression(ICSSParser.ExpressionContext ctx) {
+		if (exprStack.isEmpty()) return;
+		Expression expr = exprStack.pop();
+		ASTNode top = currentContainer.peek();
+		if (top instanceof Declaration)
+			((Declaration) top).expression = expr;
+		else if (top instanceof VariableAssignment)
+			((VariableAssignment) top).expression = expr;
+		else if (top instanceof IfClause)
+			((IfClause) top).conditionalExpression = expr;
+	}
 }

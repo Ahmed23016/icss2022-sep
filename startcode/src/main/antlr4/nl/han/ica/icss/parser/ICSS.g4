@@ -6,7 +6,6 @@ IF  : 'if';
 ELSE: 'else';
 BOX_BRACKET_OPEN : '[';
 BOX_BRACKET_CLOSE: ']';
-
 OPEN_BRACE : '{';
 CLOSE_BRACE: '}';
 SEMICOLON : ';';
@@ -15,7 +14,6 @@ PLUS      : '+';
 MIN       : '-';
 MUL       : '*';
 ASSIGNMENT_OPERATOR: ':=';
-
 LPAREN: '(';
 RPAREN: ')';
 
@@ -24,50 +22,47 @@ FALSE: 'FALSE';
 
 PIXELSIZE  : [0-9]+ 'px';
 PERCENTAGE : [0-9]+ '%';
-SCALAR     : [0-9]+;
-
-COLOR: '#' [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f];
-
-ID_IDENT   : '#' [a-z0-9\-]+;
-CLASS_IDENT: '.' [a-z0-9\-]+;
-
-LOWER_IDENT   : [a-z] [a-z0-9\-]*;
-CAPITAL_IDENT : [A-Z] [A-Za-z0-9_]*;
-
+NUMBER     : [0-9]+;
+fragment HEX : [0-9A-Fa-f];
+COLOR : '#' HEX HEX HEX HEX HEX HEX;
+IDIDENT    : '#' [a-zA-Z\-][a-zA-Z0-9\-]*;
+CLASSIDENT : '.' [a-z0-9\-]+;
+LOWERIDENT : [a-z] [a-z0-9\-]*;
+CAPITALIDENT : [A-Z] [A-Za-z0-9_]*;
 WS: [ \t\r\n]+ -> skip;
 
 //==================== PARSER ====================
 
 stylesheet
-    : (variable_assignment | stylerule)* EOF
+    : (variableAssignment | styleRule)* EOF
     ;
 
-stylerule
+styleRule
     : selector OPEN_BRACE statement* CLOSE_BRACE
     ;
 
 selector
-    : tag_selector
-    | id_selector
-    | class_selector
+    : tagSelector
+    | idSelector
+    | classSelector
     ;
 
-tag_selector
-    : LOWER_IDENT
+tagSelector
+    : LOWERIDENT
     ;
 
-id_selector
-    : ID_IDENT
+idSelector
+    : IDIDENT
     ;
 
-class_selector
-    : CLASS_IDENT
+classSelector
+    : CLASSIDENT
     ;
 
 statement
     : declaration
-    | variable_assignment
-    | if_clause
+    | variableAssignment
+    | ifClause
     ;
 
 declaration
@@ -75,53 +70,40 @@ declaration
     ;
 
 property
-    : LOWER_IDENT
+    : LOWERIDENT
     ;
 
-variable_assignment
-    : CAPITAL_IDENT ASSIGNMENT_OPERATOR expression SEMICOLON
+variableAssignment
+    : CAPITALIDENT ASSIGNMENT_OPERATOR expression SEMICOLON
     ;
 
-if_clause
-    : IF BOX_BRACKET_OPEN expression BOX_BRACKET_CLOSE OPEN_BRACE statement* CLOSE_BRACE
+ifClause
+    : IF BOX_BRACKET_OPEN expression BOX_BRACKET_CLOSE
+      OPEN_BRACE statement* CLOSE_BRACE
       (ELSE OPEN_BRACE statement* CLOSE_BRACE)?
     ;
 
+
 expression
-    : additiveExpression
+    : value ((PLUS | MIN | MUL) value)*
     ;
 
-additiveExpression
-    : multiplicativeExpression ( (PLUS | MIN) multiplicativeExpression )*
-    ;
-
-multiplicativeExpression
-    : unaryExpression (MUL unaryExpression)*
-    ;
-
-unaryExpression
-    : MIN unaryExpression                 #unaryMinus
-    | primary                             #toPrimary
-    ;
-
-primary
+value
     : literal
-    | variable_reference
+    | variableReference
     | LPAREN expression RPAREN
     ;
 
+
 literal
-    : pixel_literal
-    | percentage_literal
-    | scalar_literal
-    | color_literal
-    | bool_literal
+    : PIXELSIZE
+    | PERCENTAGE
+    | NUMBER
+    | COLOR
+    | TRUE
+    | FALSE
     ;
 
-pixel_literal       : PIXELSIZE;
-percentage_literal  : PERCENTAGE;
-scalar_literal      : SCALAR;
-color_literal       : COLOR;
-bool_literal        : TRUE | FALSE;
-
-variable_reference  : CAPITAL_IDENT;
+variableReference
+    : CAPITALIDENT
+    ;
