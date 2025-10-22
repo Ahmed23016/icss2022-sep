@@ -1,7 +1,6 @@
 package nl.han.ica.icss.parser;
 
 import java.util.Stack;
-
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.*;
@@ -10,23 +9,17 @@ import nl.han.ica.icss.ast.selectors.*;
 public class ASTListener extends ICSSBaseListener {
 
 	private AST ast;
-	private Stack<ASTNode> currentContainer;
+	private Stack<ASTNode> currentContainer = new Stack<>();
 	private Stack<Expression> exprStack = new Stack<>();
 
-	public ASTListener() {
-		ast = new AST();
-		currentContainer = new Stack<>();
-	}
+	public AST getAST() { return ast; }
 
-	public AST getAST() {
-		return ast;
-	}
+	public ASTListener() { ast = new AST(); }
 
 
 	@Override
 	public void enterStylesheet(ICSSParser.StylesheetContext ctx) {
-		Stylesheet sheet = new Stylesheet();
-		currentContainer.push(sheet);
+		currentContainer.push(new Stylesheet());
 	}
 
 	@Override
@@ -36,8 +29,7 @@ public class ASTListener extends ICSSBaseListener {
 
 	@Override
 	public void enterStyleRule(ICSSParser.StyleRuleContext ctx) {
-		Stylerule rule = new Stylerule();
-		currentContainer.push(rule);
+		currentContainer.push(new Stylerule());
 	}
 
 	@Override
@@ -48,8 +40,7 @@ public class ASTListener extends ICSSBaseListener {
 
 	@Override
 	public void enterDeclaration(ICSSParser.DeclarationContext ctx) {
-		Declaration decl = new Declaration();
-		currentContainer.push(decl);
+		currentContainer.push(new Declaration());
 	}
 
 	@Override
@@ -62,30 +53,29 @@ public class ASTListener extends ICSSBaseListener {
 			((IfClause) parent).body.add(decl);
 	}
 
-
 	@Override
 	public void enterProperty(ICSSParser.PropertyContext ctx) {
-		PropertyName prop = new PropertyName(ctx.LOWERIDENT().getText());
-		((Declaration) currentContainer.peek()).property = prop;
+		((Declaration) currentContainer.peek())
+				.property = new PropertyName(ctx.LOWERIDENT().getText());
 	}
 
 
 	@Override
 	public void enterIdSelector(ICSSParser.IdSelectorContext ctx) {
-		IdSelector selector = new IdSelector(ctx.IDIDENT().getText().substring(1));
-		((Stylerule) currentContainer.peek()).selectors.add(selector);
+		((Stylerule) currentContainer.peek())
+				.selectors.add(new IdSelector(ctx.IDIDENT().getText().substring(1)));
 	}
 
 	@Override
 	public void enterClassSelector(ICSSParser.ClassSelectorContext ctx) {
-		ClassSelector selector = new ClassSelector(ctx.CLASSIDENT().getText().substring(1));
-		((Stylerule) currentContainer.peek()).selectors.add(selector);
+		((Stylerule) currentContainer.peek())
+				.selectors.add(new ClassSelector(ctx.CLASSIDENT().getText().substring(1)));
 	}
 
 	@Override
 	public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
-		TagSelector selector = new TagSelector(ctx.LOWERIDENT().getText());
-		((Stylerule) currentContainer.peek()).selectors.add(selector);
+		((Stylerule) currentContainer.peek())
+				.selectors.add(new TagSelector(ctx.LOWERIDENT().getText()));
 	}
 
 
@@ -105,8 +95,7 @@ public class ASTListener extends ICSSBaseListener {
 
 	@Override
 	public void enterIfClause(ICSSParser.IfClauseContext ctx) {
-		IfClause clause = new IfClause();
-		currentContainer.push(clause);
+		currentContainer.push(new IfClause());
 	}
 
 	@Override
@@ -127,21 +116,45 @@ public class ASTListener extends ICSSBaseListener {
 
 	@Override
 	public void enterLiteral(ICSSParser.LiteralContext ctx) {
-		if (ctx.PIXELSIZE() != null) {
-			int val = Integer.parseInt(ctx.PIXELSIZE().getText().replace("px", ""));
-			exprStack.push(new PixelLiteral(val));
-		} else if (ctx.PERCENTAGE() != null) {
-			int val = Integer.parseInt(ctx.PERCENTAGE().getText().replace("%", ""));
-			exprStack.push(new PercentageLiteral(val));
-		} else if (ctx.NUMBER() != null) {
-			int val = Integer.parseInt(ctx.NUMBER().getText());
-			exprStack.push(new ScalarLiteral(val));
-		} else if (ctx.COLOR() != null) {
+		if (ctx.PIXELSIZE() != null)
+			exprStack.push(new PixelLiteral(Integer.parseInt(ctx.PIXELSIZE().getText().replace("px", ""))));
+		else if (ctx.PERCENTAGE() != null)
+			exprStack.push(new PercentageLiteral(Integer.parseInt(ctx.PERCENTAGE().getText().replace("%", ""))));
+		else if (ctx.NUMBER() != null)
+			exprStack.push(new ScalarLiteral(Integer.parseInt(ctx.NUMBER().getText())));
+		else if (ctx.COLOR() != null)
 			exprStack.push(new ColorLiteral(ctx.COLOR().getText()));
-		} else if (ctx.TRUE() != null || ctx.FALSE() != null) {
-			boolean val = ctx.TRUE() != null;
-			exprStack.push(new BoolLiteral(val));
+		else if (ctx.TRUE() != null || ctx.FALSE() != null)
+			exprStack.push(new BoolLiteral(ctx.TRUE() != null));
+	}
+
+	@Override
+	public void exitAdditiveExpression(ICSSParser.AdditiveExpressionContext ctx) {
+		if (ctx.multiplicativeExpression().size() == 1) return;
+		Expression expr = exprStack.pop();
+		for (int i = ctx.multiplicativeExpression().size() - 2; i >= 0; i--) {
+			Expression left = exprStack.pop();
+			String opText = ctx.getChild(2 * i + 1).getText();
+			Operation op = opText.equals("+") ? new AddOperation() : new SubtractOperation();
+			op.lhs = left;
+			op.rhs = expr;
+			expr = op;
 		}
+		exprStack.push(expr);
+	}
+
+	@Override
+	public void exitMultiplicativeExpression(ICSSParser.MultiplicativeExpressionContext ctx) {
+		if (ctx.value().size() == 1) return;
+		Expression expr = exprStack.pop();
+		for (int i = ctx.value().size() - 2; i >= 0; i--) {
+			Expression left = exprStack.pop();
+			MultiplyOperation op = new MultiplyOperation();
+			op.lhs = left;
+			op.rhs = expr;
+			expr = op;
+		}
+		exprStack.push(expr);
 	}
 
 	@Override

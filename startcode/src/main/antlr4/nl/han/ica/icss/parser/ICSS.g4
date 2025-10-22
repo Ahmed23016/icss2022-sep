@@ -1,6 +1,5 @@
 grammar ICSS;
 
-//==================== LEXER ====================
 
 IF  : 'if';
 ELSE: 'else';
@@ -31,7 +30,6 @@ LOWERIDENT : [a-z] [a-z0-9\-]*;
 CAPITALIDENT : [A-Z] [A-Za-z0-9_]*;
 WS: [ \t\r\n]+ -> skip;
 
-//==================== PARSER ====================
 
 stylesheet
     : (variableAssignment | styleRule)* EOF
@@ -47,17 +45,9 @@ selector
     | classSelector
     ;
 
-tagSelector
-    : LOWERIDENT
-    ;
-
-idSelector
-    : IDIDENT
-    ;
-
-classSelector
-    : CLASSIDENT
-    ;
+tagSelector : LOWERIDENT ;
+idSelector  : IDIDENT ;
+classSelector : CLASSIDENT ;
 
 statement
     : declaration
@@ -69,9 +59,7 @@ declaration
     : property COLON expression SEMICOLON
     ;
 
-property
-    : LOWERIDENT
-    ;
+property : LOWERIDENT ;
 
 variableAssignment
     : CAPITALIDENT ASSIGNMENT_OPERATOR expression SEMICOLON
@@ -85,7 +73,15 @@ ifClause
 
 
 expression
-    : value ((PLUS | MIN | MUL) value)*
+    : additiveExpression
+    ;
+
+additiveExpression
+    : multiplicativeExpression ((PLUS | MIN) multiplicativeExpression)*
+    ;
+
+multiplicativeExpression
+    : value (MUL value)*
     ;
 
 value

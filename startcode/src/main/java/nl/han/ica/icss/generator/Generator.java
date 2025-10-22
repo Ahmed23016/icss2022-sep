@@ -14,12 +14,13 @@ public class Generator {
 
 	}
 	private String generateStylesheet(Stylesheet stylesheet) {
+		StringBuilder stylesheetBuilder = new StringBuilder();
 		for (ASTNode child : stylesheet.getChildren()) {
 			if(child instanceof Stylerule) {
-				return generateStylerule((Stylerule) child);
+				stylesheetBuilder.append(generateStylerule((Stylerule) child)).append("\n");
 			}
 		}
-		return "";
+		return stylesheetBuilder.toString();
 	}
 
 	private String generateStylerule(Stylerule stylerule) {
