@@ -45,6 +45,9 @@ public class ASTNode {
     public void setError(String description) {
         this.error = new SemanticError(description);
     }
+    public void setError(){
+        this.error = new SemanticError();
+    }
 
     public boolean hasError() {
         return error != null;
