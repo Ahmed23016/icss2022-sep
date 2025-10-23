@@ -10,12 +10,10 @@ public class ASTListener extends ICSSBaseListener {
 
 	private AST ast;
 	private Stack<ASTNode> currentContainer = new Stack<>();
-	private Stack<Expression> exprStack = new Stack<>();
 
 	public AST getAST() { return ast; }
 
 	public ASTListener() { ast = new AST(); }
-
 
 	@Override
 	public void enterStylesheet(ICSSParser.StylesheetContext ctx) {
@@ -51,6 +49,8 @@ public class ASTListener extends ICSSBaseListener {
 			((Stylerule) parent).addChild(decl);
 		else if (parent instanceof IfClause)
 			((IfClause) parent).body.add(decl);
+		else if (parent instanceof ElseClause)
+			((ElseClause) parent).body.add(decl);
 	}
 
 	@Override
@@ -59,17 +59,16 @@ public class ASTListener extends ICSSBaseListener {
 				.property = new PropertyName(ctx.LOWERIDENT().getText());
 	}
 
-
 	@Override
 	public void enterIdSelector(ICSSParser.IdSelectorContext ctx) {
 		((Stylerule) currentContainer.peek())
-				.selectors.add(new IdSelector(ctx.IDIDENT().getText().substring(1)));
+				.selectors.add(new IdSelector(ctx.IDIDENT().getText()));
 	}
 
 	@Override
 	public void enterClassSelector(ICSSParser.ClassSelectorContext ctx) {
 		((Stylerule) currentContainer.peek())
-				.selectors.add(new ClassSelector(ctx.CLASSIDENT().getText().substring(1)));
+				.selectors.add(new ClassSelector(ctx.CLASSIDENT().getText()));
 	}
 
 	@Override
@@ -77,7 +76,6 @@ public class ASTListener extends ICSSBaseListener {
 		((Stylerule) currentContainer.peek())
 				.selectors.add(new TagSelector(ctx.LOWERIDENT().getText()));
 	}
-
 
 	@Override
 	public void enterVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
@@ -92,7 +90,6 @@ public class ASTListener extends ICSSBaseListener {
 		((Stylesheet) currentContainer.peek()).addChild(va);
 	}
 
-
 	@Override
 	public void enterIfClause(ICSSParser.IfClauseContext ctx) {
 		currentContainer.push(new IfClause());
@@ -100,73 +97,97 @@ public class ASTListener extends ICSSBaseListener {
 
 	@Override
 	public void exitIfClause(ICSSParser.IfClauseContext ctx) {
-		IfClause clause = (IfClause) currentContainer.pop();
+		IfClause ifClause = (IfClause) currentContainer.pop();
+
+		if (ctx.ELSE() != null) {
+			ElseClause elseClause = new ElseClause();
+
+			int totalStatements = ctx.statement().size();
+			int thenCount = ctx.CLOSE_BRACE().size() == 2
+					? totalStatements - ctx.statement(totalStatements - 1).getChildCount()
+					: totalStatements;
+
+			int totalBody = ifClause.body.size();
+			int bodyCountOfElse = totalBody - thenCount;
+
+			for (int i = 0; i < bodyCountOfElse; i++)
+				elseClause.body.add(ifClause.body.remove(thenCount));
+
+			ifClause.elseClause = elseClause;
+		}
+
 		ASTNode parent = currentContainer.peek();
 		if (parent instanceof Stylerule)
-			((Stylerule) parent).body.add(clause);
+			((Stylerule) parent).body.add(ifClause);
 		else if (parent instanceof IfClause)
-			((IfClause) parent).body.add(clause);
+			((IfClause) parent).body.add(ifClause);
+		else if (parent instanceof ElseClause)
+			((ElseClause) parent).body.add(ifClause);
 	}
-
 
 	@Override
 	public void enterVariableReference(ICSSParser.VariableReferenceContext ctx) {
-		exprStack.push(new VariableReference(ctx.CAPITALIDENT().getText()));
+		currentContainer.push(new VariableReference(ctx.CAPITALIDENT().getText()));
 	}
 
 	@Override
 	public void enterLiteral(ICSSParser.LiteralContext ctx) {
+		Expression lit = null;
 		if (ctx.PIXELSIZE() != null)
-			exprStack.push(new PixelLiteral(Integer.parseInt(ctx.PIXELSIZE().getText().replace("px", ""))));
+			lit = new PixelLiteral(Integer.parseInt(ctx.PIXELSIZE().getText().replace("px", "")));
 		else if (ctx.PERCENTAGE() != null)
-			exprStack.push(new PercentageLiteral(Integer.parseInt(ctx.PERCENTAGE().getText().replace("%", ""))));
+			lit = new PercentageLiteral(Integer.parseInt(ctx.PERCENTAGE().getText().replace("%", "")));
 		else if (ctx.NUMBER() != null)
-			exprStack.push(new ScalarLiteral(Integer.parseInt(ctx.NUMBER().getText())));
+			lit = new ScalarLiteral(Integer.parseInt(ctx.NUMBER().getText()));
 		else if (ctx.COLOR() != null)
-			exprStack.push(new ColorLiteral(ctx.COLOR().getText()));
+			lit = new ColorLiteral(ctx.COLOR().getText());
 		else if (ctx.TRUE() != null || ctx.FALSE() != null)
-			exprStack.push(new BoolLiteral(ctx.TRUE() != null));
-	}
-
-	@Override
-	public void exitAdditiveExpression(ICSSParser.AdditiveExpressionContext ctx) {
-		if (ctx.multiplicativeExpression().size() == 1) return;
-		Expression expr = exprStack.pop();
-		for (int i = ctx.multiplicativeExpression().size() - 2; i >= 0; i--) {
-			Expression left = exprStack.pop();
-			String opText = ctx.getChild(2 * i + 1).getText();
-			Operation op = opText.equals("+") ? new AddOperation() : new SubtractOperation();
-			op.lhs = left;
-			op.rhs = expr;
-			expr = op;
-		}
-		exprStack.push(expr);
+			lit = new BoolLiteral(ctx.TRUE() != null);
+		currentContainer.push(lit);
 	}
 
 	@Override
 	public void exitMultiplicativeExpression(ICSSParser.MultiplicativeExpressionContext ctx) {
 		if (ctx.value().size() == 1) return;
-		Expression expr = exprStack.pop();
-		for (int i = ctx.value().size() - 2; i >= 0; i--) {
-			Expression left = exprStack.pop();
+		int count = ctx.value().size();
+		Expression rhs = (Expression) currentContainer.pop();
+		for (int i = 1; i < count; i++) {
+			Expression lhs = (Expression) currentContainer.pop();
 			MultiplyOperation op = new MultiplyOperation();
-			op.lhs = left;
-			op.rhs = expr;
-			expr = op;
+			op.lhs = lhs;
+			op.rhs = rhs;
+			rhs = op;
 		}
-		exprStack.push(expr);
+		currentContainer.push(rhs);
+	}
+
+	@Override
+	public void exitAdditiveExpression(ICSSParser.AdditiveExpressionContext ctx) {
+		if (ctx.multiplicativeExpression().size() == 1) return;
+		int count = ctx.multiplicativeExpression().size();
+		Expression rhs = (Expression) currentContainer.pop();
+		for (int i = 1; i < count; i++) {
+			Expression lhs = (Expression) currentContainer.pop();
+			String opText = ctx.getChild(2 * (count - i - 1) + 1).getText();
+			Operation op = opText.equals("+") ? new AddOperation() : new SubtractOperation();
+			op.lhs = lhs;
+			op.rhs = rhs;
+			rhs = op;
+		}
+		currentContainer.push(rhs);
 	}
 
 	@Override
 	public void exitExpression(ICSSParser.ExpressionContext ctx) {
-		if (exprStack.isEmpty()) return;
-		Expression expr = exprStack.pop();
-		ASTNode top = currentContainer.peek();
-		if (top instanceof Declaration)
-			((Declaration) top).expression = expr;
-		else if (top instanceof VariableAssignment)
-			((VariableAssignment) top).expression = expr;
-		else if (top instanceof IfClause)
-			((IfClause) top).conditionalExpression = expr;
+		if (currentContainer.peek() instanceof Expression) {
+			Expression expr = (Expression) currentContainer.pop();
+			ASTNode top = currentContainer.peek();
+			if (top instanceof Declaration)
+				((Declaration) top).expression = expr;
+			else if (top instanceof VariableAssignment)
+				((VariableAssignment) top).expression = expr;
+			else if (top instanceof IfClause)
+				((IfClause) top).conditionalExpression = expr;
+		}
 	}
 }
