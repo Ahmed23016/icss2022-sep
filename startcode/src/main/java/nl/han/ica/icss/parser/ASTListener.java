@@ -87,7 +87,15 @@ public class ASTListener extends ICSSBaseListener {
 	@Override
 	public void exitVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
 		VariableAssignment va = (VariableAssignment) currentContainer.pop();
-		((Stylesheet) currentContainer.peek()).addChild(va);
+		ASTNode parent = currentContainer.peek();
+		if (parent instanceof Stylesheet)
+			((Stylesheet) parent).addChild(va);
+		else if (parent instanceof Stylerule)
+			((Stylerule) parent).body.add(va);
+		else if (parent instanceof IfClause)
+			((IfClause) parent).body.add(va);
+		else if (parent instanceof ElseClause)
+			((ElseClause) parent).body.add(va);
 	}
 
 	@Override
@@ -99,20 +107,15 @@ public class ASTListener extends ICSSBaseListener {
 	public void exitIfClause(ICSSParser.IfClauseContext ctx) {
 		IfClause ifClause = (IfClause) currentContainer.pop();
 
-		if (ctx.ELSE() != null) {
+		if (ctx.ELSE() != null && !ctx.statement().isEmpty()) {
 			ElseClause elseClause = new ElseClause();
 
 			int totalStatements = ctx.statement().size();
-			int thenCount = ctx.CLOSE_BRACE().size() == 2
-					? totalStatements - ctx.statement(totalStatements - 1).getChildCount()
-					: totalStatements;
-
-			int totalBody = ifClause.body.size();
-			int bodyCountOfElse = totalBody - thenCount;
-
-			for (int i = 0; i < bodyCountOfElse; i++)
-				elseClause.body.add(ifClause.body.remove(thenCount));
-
+			int half = totalStatements / 2;
+			for (int i = half; i < totalStatements; i++) {
+				ASTNode node = ifClause.body.remove(half); 
+				elseClause.body.add(node);
+			}
 			ifClause.elseClause = elseClause;
 		}
 
@@ -148,34 +151,39 @@ public class ASTListener extends ICSSBaseListener {
 
 	@Override
 	public void exitMultiplicativeExpression(ICSSParser.MultiplicativeExpressionContext ctx) {
-		if (ctx.value().size() == 1) return;
-		int count = ctx.value().size();
-		Expression rhs = (Expression) currentContainer.pop();
-		for (int i = 1; i < count; i++) {
-			Expression lhs = (Expression) currentContainer.pop();
+		if (ctx.getChildCount() == 1) return;
+		Stack<Expression> values = new Stack<>();
+		for (int i = 0; i < ctx.getChildCount(); i += 2)
+			values.push((Expression) currentContainer.pop());
+		Expression expr = values.pop();
+		for (int i = 1; i < ctx.getChildCount(); i += 2) {
+			Expression right = values.pop();
 			MultiplyOperation op = new MultiplyOperation();
-			op.lhs = lhs;
-			op.rhs = rhs;
-			rhs = op;
+			op.lhs = expr;
+			op.rhs = right;
+			expr = op;
 		}
-		currentContainer.push(rhs);
+		currentContainer.push(expr);
 	}
 
 	@Override
 	public void exitAdditiveExpression(ICSSParser.AdditiveExpressionContext ctx) {
-		if (ctx.multiplicativeExpression().size() == 1) return;
-		int count = ctx.multiplicativeExpression().size();
-		Expression rhs = (Expression) currentContainer.pop();
-		for (int i = 1; i < count; i++) {
-			Expression lhs = (Expression) currentContainer.pop();
-			String opText = ctx.getChild(2 * (count - i - 1) + 1).getText();
+		if (ctx.getChildCount() == 1) return;
+		Stack<Expression> values = new Stack<>();
+		for (int i = 0; i < ctx.getChildCount(); i += 2)
+			values.push((Expression) currentContainer.pop());
+		Expression expr = values.pop();
+		for (int i = 1; i < ctx.getChildCount(); i += 2) {
+			Expression right = values.pop();
+			String opText = ctx.getChild(i).getText();
 			Operation op = opText.equals("+") ? new AddOperation() : new SubtractOperation();
-			op.lhs = lhs;
-			op.rhs = rhs;
-			rhs = op;
+			op.lhs = expr;
+			op.rhs = right;
+			expr = op;
 		}
-		currentContainer.push(rhs);
+		currentContainer.push(expr);
 	}
+
 
 	@Override
 	public void exitExpression(ICSSParser.ExpressionContext ctx) {
