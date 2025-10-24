@@ -38,7 +38,7 @@ public class Checker {
     }
 
     private void checkStylerule(Stylerule rule) {
-        variableTypes.push(new HashMap<>()); // nieuwe lokale scope
+        variableTypes.push(new HashMap<>());
         for (ASTNode child : rule.getChildren()) {
             if (child instanceof Declaration)
                 checkDeclaration((Declaration) child);
@@ -89,6 +89,11 @@ public class Checker {
                 return;
             }
         }
+        getType(declaration.expression);
+        if (declaration.expression.hasError()) {
+            declaration.setError();
+            return;
+        }
 
         var allowed = ALLOWED_TYPES_FOR_PROPERTY.get(declaration.property.name.toLowerCase());
         if (allowed == null) return;
@@ -122,7 +127,6 @@ public class Checker {
         variableTypes.peek().put(assignment.name.name, type);
     }
 
-    //==================== HULPFUNCTIES ====================
 
     private ExpressionType getType(Expression expr) {
         if (expr instanceof PixelLiteral) return ExpressionType.PIXEL;
