@@ -1,3 +1,15 @@
 p {
     width: UndefinedVar;
 }
+
+
+supercooltag {
+    height: 10px * 10px;
+    width:10px +20%;
+    color: #ffffff + #000000;
+    }
+
+#menu {
+    width: #454545;
+    color: 1000000000000000px;
+}
