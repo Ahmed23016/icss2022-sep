@@ -77,12 +77,15 @@ expression
     ;
 
 additiveExpression
-    : multiplicativeExpression ((PLUS | MIN) multiplicativeExpression)*
+    : additiveExpression (PLUS | MIN) multiplicativeExpression
+    | multiplicativeExpression
     ;
 
 multiplicativeExpression
-    : value (MUL value)*
+    : multiplicativeExpression MUL value
+    | value
     ;
+
 
 value
     : literal
