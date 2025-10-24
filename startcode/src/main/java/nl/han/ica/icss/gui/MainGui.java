@@ -196,7 +196,10 @@ public class MainGui extends Application {
         feedbackPane.addLine("Parsing...");
         pipeline.parseString(inputPane.getText());
         for(String e : pipeline.getErrors()) {
-            feedbackPane.addLine(e);
+            if (!e.isEmpty()) {
+                System.out.println(e);
+                feedbackPane.addLine(e);
+            }
         }
         if (pipeline.isParsed()) {
             feedbackPane.addLine("Parsing succeeded");

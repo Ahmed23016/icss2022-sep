@@ -53,7 +53,7 @@ public class Checker {
             if (scope.containsKey(ref.name))
                 return scope.get(ref.name);
         }
-        ref.setError("Variabele '" + ref.name + "' is niet gedefinieerd.");
+        ref.setError("Variabele '" + ref.name + "' is niet gedefenieerd.");
         return ExpressionType.UNDEFINED;
     }
 
@@ -68,7 +68,7 @@ public class Checker {
                 op.setError("Operand types in " + op.getClass().getSimpleName() + " moeten gelijk zijn.");
         } else if (op instanceof MultiplyOperation) {
             if (!(left == ExpressionType.SCALAR || right == ExpressionType.SCALAR))
-                op.setError("Bij vermenigvuldigen moet één operand een scalar zijn.");
+                op.setError("Bij vermenigvuldigen moet 1 operand een scalar zijn.");
         }
         return left;
     }
@@ -84,7 +84,7 @@ public class Checker {
                 }
             }
             if (!defined) {
-                declaration.setError("Variabele '" + ref.name + "' is niet gedefinieerd.");
+                declaration.setError("Variabele '" + ref.name + "' is niet gedefenieerd.");
                 ref.setError();
                 return;
             }
