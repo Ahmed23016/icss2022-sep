@@ -8,19 +8,28 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Evaluator implements Transform {
-
+    private final LinkedList<HashMap<String, Literal>> varirableAssigmentsSafe = new LinkedList<>();
     @Override
     public void apply(AST ast) {
+            varirableAssigmentsSafe.push(new HashMap<>());
             applyStylesheet((Stylesheet) ast.root);
     }
 
     private void applyStylesheet(Stylesheet stylesheet) {
         for (ASTNode node : stylesheet.getChildren()) {
-            if (node instanceof Stylerule)
-                applyStylerule((Stylerule) node);
+            if (node instanceof VariableAssignment varAssign) {
+                addVarAssignnmentVariable(varAssign);
+            }
+            else if (node instanceof Stylerule rule) {
+                applyStylerule(rule);
+            }
         }
     }
 
+    private void addVarAssignnmentVariable(VariableAssignment varAssign) {
+        Literal value = evalExpression(varAssign.expression);
+        varirableAssigmentsSafe.peek().put(varAssign.name.name, value);
+    }
     private void applyStylerule(Stylerule rule) {
         for (ASTNode node : rule.getChildren()) {
             if (node instanceof Declaration)
@@ -36,7 +45,12 @@ public class Evaluator implements Transform {
 
     private Literal evalExpression(Expression expr) {
         if(expr instanceof VariableReference){
-            System.out.println(expr.toString());
+            VariableReference variablerefernc = (VariableReference) expr;
+            for (HashMap<String, Literal> variableAssigment : varirableAssigmentsSafe) {
+                if(variableAssigment.containsKey(variablerefernc.name)){
+                    return variableAssigment.get(variablerefernc.name);
+                }
+            }
         }
         if (expr instanceof Literal) {
             return (Literal) expr;
