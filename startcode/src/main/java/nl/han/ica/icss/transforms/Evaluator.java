@@ -33,9 +33,11 @@ public class Evaluator implements Transform {
         declaration.expression = evalExpression(expr);
     }
 
-    //==================== EXPRESSION EVALUATION ====================
 
     private Literal evalExpression(Expression expr) {
+        if(expr instanceof VariableReference){
+            System.out.println(expr.toString());
+        }
         if (expr instanceof Literal) {
             return (Literal) expr;
         }
