@@ -13,3 +13,18 @@ supercooltag {
     width: #454545;
     color: 100px;
 }
+AdjustColor := 5px;
+p {
+    if[AdjustColor] {
+        color: #ff0000;
+    }
+}
+
+
+p {
+    InnerVar := 20px;
+    width: InnerVar;
+}
+q {
+    height: InnerVar; 
+}

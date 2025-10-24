@@ -10,7 +10,7 @@ import java.util.*;
 public class Checker {
 
 
-    private LinkedList<HashMap<String, ExpressionType>> variableTypes = new LinkedList<>();
+    private LinkedList<HashMap<String, ExpressionType>> safedepositOfVariableAssignments = new LinkedList<>();
 
     private static final Map<String, Set<Class<? extends Literal>>> ALLOWED_TYPES_FOR_PROPERTY = Map.of(
             "width", Set.of(ScalarLiteral.class, PixelLiteral.class, PercentageLiteral.class),
@@ -22,9 +22,8 @@ public class Checker {
 
 
     public void check(AST ast) {
-        variableTypes.push(new HashMap<>());
+        safedepositOfVariableAssignments.push(new HashMap<>());
         checkStylesheet(ast.root);
-        variableTypes.pop();
     }
 
 
@@ -38,14 +37,14 @@ public class Checker {
     }
 
     private void checkStylerule(Stylerule rule) {
-        variableTypes.push(new HashMap<>());
+        safedepositOfVariableAssignments.push(new HashMap<>());
         for (ASTNode child : rule.getChildren()) {
             if (child instanceof Declaration)
                 checkDeclaration((Declaration) child);
             else if (child instanceof IfClause)
                 checkIfClause((IfClause) child);
         }
-        variableTypes.pop();
+        safedepositOfVariableAssignments.pop();
     }
 
 
@@ -61,7 +60,7 @@ public class Checker {
     }
 
     private ExpressionType checkVariableReference(VariableReference ref) {
-        for (HashMap<String, ExpressionType> scope : variableTypes) {
+        for (HashMap<String, ExpressionType> scope : safedepositOfVariableAssignments) {
             if (scope.containsKey(ref.name))
                 return scope.get(ref.name);
         }
@@ -102,7 +101,7 @@ public class Checker {
         if (declaration.expression == null) return;
 
         if (declaration.expression instanceof VariableReference ref) {
-            boolean defined = variableTypes.stream().anyMatch(scope -> scope.containsKey(ref.name));
+            boolean defined = safedepositOfVariableAssignments.stream().anyMatch(scope -> scope.containsKey(ref.name));
             if (!defined) {
                 declaration.setError("Variabele '" + ref.name + "' is niet gedefinieerd.");
                 ref.setError();
@@ -134,25 +133,45 @@ public class Checker {
 
     private void checkVariableAssignment(VariableAssignment assignment) {
         ExpressionType type = getType(assignment.expression);
-        variableTypes.peek().put(assignment.name.name, type);
+        safedepositOfVariableAssignments.peek().put(assignment.name.name, type);
     }
 
-    private void checkIfClause(IfClause clause) {
-        ExpressionType condType = getType(clause.conditionalExpression);
-        if (condType != ExpressionType.BOOL)
-            clause.setError("If-conditie moet boolean zijn.");
-
-        for (ASTNode child : clause.body) {
-            if (child instanceof Declaration decl)
-                checkDeclaration(decl);
+    private void checkIfClause(IfClause ifClause) {
+        safedepositOfVariableAssignments.push(new HashMap<>());
+        ExpressionType condType = getType(ifClause.conditionalExpression);
+        if (condType != ExpressionType.BOOL) {
+            ifClause.setError("If clause conditie moet boolean zijn.");
         }
 
-        if (clause.elseClause != null) {
-            for (ASTNode child : clause.elseClause.body) {
-                if (child instanceof Declaration)
-                    checkDeclaration((Declaration) child);
+        for (ASTNode child : ifClause.body) {
+            if (child instanceof VariableAssignment){
+                checkVariableAssignment((VariableAssignment) child);
+            }
+            else if (child instanceof Declaration) {
+                checkDeclaration((Declaration) child);
+            }
+            else if(child instanceof IfClause){
+                checkIfClause((IfClause) child);
             }
         }
+
+        if (ifClause.elseClause != null) {
+            safedepositOfVariableAssignments.push(new HashMap<>());
+            for (ASTNode child : ifClause.elseClause.body) {
+                if (child instanceof VariableAssignment){
+                    checkVariableAssignment((VariableAssignment) child);
+                }
+                if (child instanceof Declaration) {
+                    checkDeclaration((Declaration) child);
+                }
+                else if(child instanceof IfClause){
+                    checkIfClause((IfClause) child);
+                }
+
+            }
+            safedepositOfVariableAssignments.pop();
+        }
+        safedepositOfVariableAssignments.pop();
     }
 
 
