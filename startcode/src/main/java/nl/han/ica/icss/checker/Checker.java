@@ -39,6 +39,9 @@ public class Checker {
     private void checkStylerule(Stylerule rule) {
         safedepositOfVariableAssignments.push(new HashMap<>());
         for (ASTNode child : rule.getChildren()) {
+            if(child instanceof VariableAssignment){
+                checkVariableAssignment((VariableAssignment) child);
+            }
             if (child instanceof Declaration)
                 checkDeclaration((Declaration) child);
             else if (child instanceof IfClause)
