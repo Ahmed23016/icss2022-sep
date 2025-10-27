@@ -1,0 +1,24 @@
+BaseWidth := 100px;
+ExtraWidth := 10px;
+Double := 2;
+UseAltColor := TRUE;
+AltColor := #222222;
+MainColor := #ff00ff;
+
+#menu {
+    width: BaseWidth + ExtraWidth * Double;
+    height: 20px;
+
+    if[UseAltColor] {
+        color: AltColor;
+    } else {
+          color: MainColor;
+      }
+}
+
+p {
+    background-color: MainColor;
+    if[UseAltColor] {
+        background-color: #000000;
+    }
+}

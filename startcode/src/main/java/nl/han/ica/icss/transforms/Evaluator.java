@@ -4,10 +4,7 @@ import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.*;
 
 public class Evaluator implements Transform {
     private final LinkedList<HashMap<String, Literal>> varirableAssigmentsSafe = new LinkedList<>();
@@ -33,52 +30,77 @@ public class Evaluator implements Transform {
 
     private void applyStylerule(Stylerule rule) {
         varirableAssigmentsSafe.push(new HashMap<>());
-
-        var newBody = new LinkedList<ASTNode>();
+        var processedBody = new LinkedList<ASTNode>();
 
         for (ASTNode node : rule.body) {
-            System.out.println(node.toString());
             if (node instanceof VariableAssignment) {
                 addVarAssignnmentVariable((VariableAssignment) node);
             }
-
             else if (node instanceof IfClause) {
-                IfClause ifClause = (IfClause) node;
-                Literal condition = evalExpression(ifClause.conditionalExpression);
-
-                if (condition instanceof BoolLiteral && ((BoolLiteral) condition).value) {
-                    for (ASTNode ifClauseNode : ifClause.body) {
-                        if (ifClauseNode instanceof Declaration) {
-                            Declaration declaration = (Declaration) ifClauseNode;
-                            declaration.expression = evalExpression(declaration.expression);
-                            newBody.add(declaration);
-                        } else if (ifClauseNode instanceof VariableAssignment) {
-                            addVarAssignnmentVariable((VariableAssignment) ifClauseNode);
-                        }
-                    }
-                } else if (ifClause.elseClause != null) {
-                    for (ASTNode elseClauseNode : ifClause.elseClause.body) {
-                        if (elseClauseNode instanceof Declaration) {
-                            Declaration declaration = (Declaration) elseClauseNode;
-                            declaration.expression = evalExpression(declaration.expression);
-                            newBody.add(declaration);
-                        } else if (elseClauseNode instanceof VariableAssignment) {
-                            addVarAssignnmentVariable((VariableAssignment) elseClauseNode);
-                        }
-                    }
-                }
+                processedBody.addAll(apllyIfclause((IfClause) node));
             }
-
             else if (node instanceof Declaration) {
-                Declaration declaration = (Declaration) node;
-                declaration.expression = evalExpression(declaration.expression);
-                newBody.add(declaration);
+                Declaration declar = (Declaration) node;
+                declar.expression = evalExpression(declar.expression);
+                processedBody.add(declar);
             }
         }
 
-        rule.body = new ArrayList<>(newBody);
+        LinkedList<ASTNode> unique = getAstNodes(processedBody);
 
+        rule.body = new ArrayList<>(unique);
         varirableAssigmentsSafe.pop();
+    }
+
+    private static LinkedList<ASTNode> getAstNodes(LinkedList<ASTNode> processedBody) {
+        LinkedList<ASTNode> unique = new LinkedList<>();
+        HashSet<String> seen = new HashSet<>();
+
+        for (int i = processedBody.size() - 1; i >= 0; i--) {
+            ASTNode node = processedBody.get(i);
+            if (node instanceof Declaration) {
+                String name = ((Declaration) node).property.name;
+                if (seen.add(name)) {
+                    unique.addFirst(node);
+                }
+            } else {
+                unique.addFirst(node);
+            }
+        }
+        return unique;
+    }
+
+    private ArrayList<ASTNode> apllyIfclause(IfClause ifClause) {
+        Literal condition = evalExpression(ifClause.conditionalExpression);
+        ArrayList<ASTNode> activeBody = null;
+
+        if (condition instanceof BoolLiteral && ((BoolLiteral) condition).value) {
+            activeBody = ifClause.body;
+        } else if (ifClause.elseClause != null) {
+            activeBody = ifClause.elseClause.body;
+        }
+
+        if (activeBody == null) {
+            return new ArrayList<>();
+        }
+
+        ArrayList<ASTNode> result = new ArrayList<>();
+
+        for (ASTNode element : activeBody) {
+            if (element instanceof VariableAssignment) {
+                addVarAssignnmentVariable((VariableAssignment) element);
+            }
+            else if (element instanceof Declaration) {
+                Declaration decl = (Declaration) element;
+                decl.expression = evalExpression(decl.expression);
+                result.add(decl);
+            }
+            else if (element instanceof IfClause) {
+                result.addAll(apllyIfclause((IfClause) element));
+            }
+        }
+
+        return result;
     }
 
     private void addVarAssignnmentVariable(VariableAssignment varAssign) {
