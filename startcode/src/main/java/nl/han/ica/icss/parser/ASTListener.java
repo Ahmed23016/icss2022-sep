@@ -1,6 +1,8 @@
 package nl.han.ica.icss.parser;
 
 import java.util.Stack;
+
+import nl.han.ica.datastructures.HANStack;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.*;
@@ -9,7 +11,7 @@ import nl.han.ica.icss.ast.selectors.*;
 public class ASTListener extends ICSSBaseListener {
 
 	private AST ast;
-	private Stack<ASTNode> currentContainer = new Stack<>();
+	private HANStack<ASTNode> currentContainer = new HANStack<>();
 
 	public AST getAST() { return ast; }
 
