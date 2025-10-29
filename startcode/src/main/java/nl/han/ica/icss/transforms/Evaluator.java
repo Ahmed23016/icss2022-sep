@@ -7,7 +7,10 @@ import nl.han.ica.icss.ast.operations.*;
 import java.util.*;
 
 public class Evaluator implements Transform {
-    private final LinkedList<HashMap<String, Literal>> varirableAssigmentsSafe = new LinkedList<>();
+    private final LinkedList<HashMap<String, Literal>> varirableAssigmentsSafe;
+    public Evaluator() {
+        varirableAssigmentsSafe = new LinkedList<>();
+    }
     @Override
     public void apply(AST ast) {
             varirableAssigmentsSafe.push(new HashMap<>());

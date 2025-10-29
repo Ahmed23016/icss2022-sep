@@ -42,23 +42,39 @@ public class Checker {
             if(child instanceof VariableAssignment){
                 checkVariableAssignment((VariableAssignment) child);
             }
-            if (child instanceof Declaration)
+            if (child instanceof Declaration) {
                 checkDeclaration((Declaration) child);
-            else if (child instanceof IfClause)
+            }
+            else if (child instanceof IfClause) {
                 checkIfClause((IfClause) child);
+            }
         }
         safedepositOfVariableAssignments.pop();
     }
 
 
     private ExpressionType getType(Expression expr) {
-        if (expr instanceof PixelLiteral) return ExpressionType.PIXEL;
-        if (expr instanceof PercentageLiteral) return ExpressionType.PERCENTAGE;
-        if (expr instanceof ScalarLiteral) return ExpressionType.SCALAR;
-        if (expr instanceof ColorLiteral) return ExpressionType.COLOR;
-        if (expr instanceof BoolLiteral) return ExpressionType.BOOL;
-        if (expr instanceof VariableReference) return checkVariableReference((VariableReference) expr);
-        if (expr instanceof Operation) return checkOperation((Operation) expr);
+        if (expr instanceof PixelLiteral) {
+            return ExpressionType.PIXEL;
+        }
+        if (expr instanceof PercentageLiteral) {
+            return ExpressionType.PERCENTAGE;
+        }
+        if (expr instanceof ScalarLiteral){
+            return ExpressionType.SCALAR;
+        }
+        if (expr instanceof ColorLiteral){
+            return ExpressionType.COLOR;
+        }
+        if (expr instanceof BoolLiteral){
+            return ExpressionType.BOOL;
+        }
+        if (expr instanceof VariableReference){
+            return checkVariableReference((VariableReference) expr);
+        }
+        if (expr instanceof Operation) {
+            return checkOperation((Operation) expr);
+        }
         return ExpressionType.UNDEFINED;
     }
 
@@ -113,10 +129,7 @@ public class Checker {
         }
 
         getType(declaration.expression);
-        if (declaration.expression.hasError()) {
-            declaration.setError();
-            return;
-        }
+
 
         var allowed = ALLOWED_TYPES_FOR_PROPERTY.get(declaration.property.name.toLowerCase());
         if (allowed == null) return;
@@ -134,9 +147,9 @@ public class Checker {
         }
     }
 
-    private void checkVariableAssignment(VariableAssignment assignment) {
-        ExpressionType type = getType(assignment.expression);
-        safedepositOfVariableAssignments.peek().put(assignment.name.name, type);
+    private void checkVariableAssignment(VariableAssignment varassin) {
+        ExpressionType expresiontype = getType(varassin.expression);
+        safedepositOfVariableAssignments.peek().put(varassin.name.name, expresiontype);
     }
 
     private void checkIfClause(IfClause ifClause) {

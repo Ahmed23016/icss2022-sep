@@ -32,10 +32,10 @@ WS: [ \t\r\n]+ -> skip;
 
 
 stylesheet
-    : (variableAssignment | styleRule)* EOF
+    : (variableAssignment | stylerule)* EOF
     ;
 
-styleRule
+stylerule
     : selector OPEN_BRACE statement* CLOSE_BRACE
     ;
 
@@ -73,16 +73,16 @@ ifClause
 
 
 expression
-    : additiveExpression
+    : plusExpression
     ;
 
-additiveExpression
-    : additiveExpression (PLUS | MIN) multiplicativeExpression
-    | multiplicativeExpression
+plusExpression
+    : plusExpression (PLUS | MIN) multiplyExpression
+    | multiplyExpression
     ;
 
-multiplicativeExpression
-    : multiplicativeExpression MUL value
+multiplyExpression
+    : multiplyExpression MUL value
     | value
     ;
 
