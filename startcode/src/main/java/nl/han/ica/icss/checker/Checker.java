@@ -10,8 +10,10 @@ import java.util.*;
 public class Checker {
 
 
-    private LinkedList<HashMap<String, ExpressionType>> safedepositOfVariableAssignments = new LinkedList<>();
+    private LinkedList<HashMap<String, ExpressionType>> safedepositOfVariableAssignments;
 
+    //Ik heb een Map gemaakt zodat een width bijvoorbeeld geen kleurcode mag enzo. anders moest ik allemaal if clauses maken tijdens het checken.
+    //dit is een veel beter idee vond ik :)
     private static final Map<String, Set<Class<? extends Literal>>> ALLOWED_TYPES_FOR_PROPERTY = Map.of(
             "width", Set.of(ScalarLiteral.class, PixelLiteral.class, PercentageLiteral.class),
             "height", Set.of(ScalarLiteral.class, PixelLiteral.class, PercentageLiteral.class),
@@ -20,13 +22,16 @@ public class Checker {
             "display", Set.of(BoolLiteral.class)
     );
 
+    public Checker() {
+        safedepositOfVariableAssignments = new LinkedList<>();
+    }
 
     public void check(AST ast) {
         safedepositOfVariableAssignments.push(new HashMap<>());
         checkStylesheet(ast.root);
     }
 
-
+    // spreekt voor zich. ik check gewoon of het een stylerule is of variableassignment
     private void checkStylesheet(Stylesheet stylesheet) {
         for (ASTNode child : stylesheet.getChildren()) {
             if (child instanceof VariableAssignment)
@@ -83,7 +88,7 @@ public class Checker {
             if (scope.containsKey(ref.name))
                 return scope.get(ref.name);
         }
-        ref.setError("Variabele '" + ref.name + "' is niet gedefinieerd.");
+        ref.setError("Variabele '" + ref.name + "' is niet gedefinierd.");
         return ExpressionType.UNDEFINED;
     }
 
@@ -98,13 +103,13 @@ public class Checker {
 
         if (op instanceof AddOperation || op instanceof SubtractOperation) {
             if (left != right)
-                op.setError("Operand types in " + op.getClass().getSimpleName() + " moeten gelijk zijn.");
+                op.setError("waarde in " + op.getClass().getSimpleName() + " moeten gelijk zijn.");
             return left;
         }
 
         if (op instanceof MultiplyOperation) {
             if (!(left == ExpressionType.SCALAR || right == ExpressionType.SCALAR)) {
-                op.setError("Bij vermenigvuldigen moet één operand een scalar zijn.");
+                op.setError("Bij vermenigvuldigen moet 1 waarde een scalar zijn.");
                 return ExpressionType.UNDEFINED;
             }
 
@@ -138,7 +143,7 @@ public class Checker {
 
         if (!allowed.contains(literal.getClass())) {
             declaration.setError(String.format(
-                    "Property '%s' verwacht %s, maar kreeg %s.",
+                    "Property '%s' verwacht %s, maar kreeg %s.", // nu kan ik error geven voor meerdere type errors zoals : color:10px; en width:#ffffff;
                     declaration.property.name,
                     formatAllowed(allowed),
                     literal.getClass().getSimpleName()
