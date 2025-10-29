@@ -122,8 +122,7 @@ public class Checker {
         if (declaration.expression instanceof VariableReference ref) {
             boolean defined = safedepositOfVariableAssignments.stream().anyMatch(scope -> scope.containsKey(ref.name));
             if (!defined) {
-                declaration.setError("Variabele '" + ref.name + "' is niet gedefinieerd.");
-                ref.setError();
+                ref.setError("Variabele '" + ref.name + "' is niet gedefinieerd.");
                 return;
             }
         }
