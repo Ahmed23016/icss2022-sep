@@ -79,12 +79,12 @@ Geen uitbreiding geïmplementeerd.
 
 ## 7. Eindresultaat
 
-| Categorie   | ID’s behaald | Punten                       |
-| ----------- | ------------ |------------------------------|
-| Parser      | PA00–PA04    | 40                           |
-| Checker     | CH00–CH06    | 30                           |
-| Evaluator   | TR01–TR02    | 20                           |
-| Generator   | GE01–GE02    | 10                           |
-| Uitbreiding | —            | 0                            |
-| **Totaal**  | —            | **100 / 120** volgens mij :) |
+| Categorie | ID’s behaald | Punten                   |
+| ------- |--------------|--------------------------|
+| Parser  | PA00–PA04    | 40                       |
+| Checker | CH00–CH06    | 30                       |
+| Evaluator | TR01–TR02    | 20                       |
+| Generator | GE01–GE02    | 10                       |
+| Uitbreiding | Geen         | 0                        |
+| Totaal  | Geen         | 100 / 120 volgens mij :) |
 
