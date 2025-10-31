@@ -44,9 +44,9 @@ public class Evaluator implements Transform {
                 processedBody.addAll(apllyIfclause((IfClause) node));
             }
             else if (node instanceof Declaration) {
-                Declaration declar = (Declaration) node;
-                declar.expression = evalExpression(declar.expression);
-                processedBody.add(declar);
+                Declaration declaration = (Declaration) node;
+                declaration.expression = evalExpression(declaration.expression);
+                processedBody.add(declaration);
             }
         }
 
@@ -114,9 +114,9 @@ eerst kreeg ik in de generation steeds 2 background-color maar door processedBod
                 addVarAssignnmentVariable((VariableAssignment) element);
             }
             else if (element instanceof Declaration) {
-                Declaration declar = (Declaration) element;
-                declar.expression = evalExpression(declar.expression);
-                result.add(declar);
+                Declaration declaration = (Declaration) element;
+                declaration.expression = evalExpression(declaration.expression);
+                result.add(declaration);
             }
             else if (element instanceof IfClause) {
                 result.addAll(apllyIfclause((IfClause) element));
