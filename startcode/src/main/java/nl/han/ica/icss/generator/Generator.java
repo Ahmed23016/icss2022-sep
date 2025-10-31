@@ -36,7 +36,7 @@ public class Generator {
 		StringBuilder sb = new StringBuilder();
         for (ASTNode astNode : body) {
 			Declaration child = (Declaration) astNode;
-            sb.append("\n    ").append(child.property.name).append(" : ").append(generateExpression(child.expression)).append(";");
+            sb.append("\n  ").append(child.property.name).append(" : ").append(generateExpression(child.expression)).append(";");
         }
 		return sb.toString();
 

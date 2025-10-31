@@ -27,6 +27,7 @@ public class Evaluator implements Transform {
                 applyStylerule((Stylerule) node);
             }
         }
+        // alle variable assignments verwijderen in de transformer. dan zie je hem niet meer :)
         stylesheet.getChildren().removeAll(toRemove);
     }
 
@@ -54,7 +55,26 @@ public class Evaluator implements Transform {
         rule.body = new ArrayList<>(unique);
         varirableAssigmentsSafe.pop();
     }
+    // dit is vor meerdere declaraties
+    // bijvoorbeeld in level 3
+    /*
+p {
+	background-color: #ffffff; hier is background color
+	width: ParWidth;
+	if[AdjustColor] {
+	    color: #124532;
+	    if[UseLinkColor]{
+	        background-color: LinkColor; hier ook
+	    } else {
+	        background-color: #000000; hier ook
+	    }
+	}
+	height: 20px;
+}
+eerst kreeg ik in de generation steeds 2 background-color maar door processedBody en de getAstNodes functie pakt hij de laatste
 
+
+     */
     private static LinkedList<ASTNode> getAstNodes(LinkedList<ASTNode> processedBody) {
         LinkedList<ASTNode> unique = new LinkedList<>();
         HashSet<String> seen = new HashSet<>();
@@ -94,9 +114,9 @@ public class Evaluator implements Transform {
                 addVarAssignnmentVariable((VariableAssignment) element);
             }
             else if (element instanceof Declaration) {
-                Declaration decl = (Declaration) element;
-                decl.expression = evalExpression(decl.expression);
-                result.add(decl);
+                Declaration declar = (Declaration) element;
+                declar.expression = evalExpression(declar.expression);
+                result.add(declar);
             }
             else if (element instanceof IfClause) {
                 result.addAll(apllyIfclause((IfClause) element));
@@ -126,18 +146,18 @@ public class Evaluator implements Transform {
             return (Literal) expr;
 
         if (expr instanceof AddOperation) {
-            AddOperation op = (AddOperation) expr;
-            return addLiterals(evalExpression(op.lhs), evalExpression(op.rhs));
+            AddOperation adOperation = (AddOperation) expr;
+            return addLiterals(evalExpression(adOperation.lhs), evalExpression(adOperation.rhs));
         }
 
         if (expr instanceof SubtractOperation) {
-            SubtractOperation op = (SubtractOperation) expr;
-            return minusLiterals(evalExpression(op.lhs), evalExpression(op.rhs));
+            SubtractOperation minusOpration = (SubtractOperation) expr;
+            return minusLiterals(evalExpression(minusOpration.lhs), evalExpression(minusOpration.rhs));
         }
 
         if (expr instanceof MultiplyOperation) {
-            MultiplyOperation op = (MultiplyOperation) expr;
-            return multiplyLiterals(evalExpression(op.lhs), evalExpression(op.rhs));
+            MultiplyOperation multiplyOperation = (MultiplyOperation) expr;
+            return multiplyLiterals(evalExpression(multiplyOperation.lhs), evalExpression(multiplyOperation.rhs));
         }
 
         return new ScalarLiteral(0);

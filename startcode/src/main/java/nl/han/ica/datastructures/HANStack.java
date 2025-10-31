@@ -29,17 +29,5 @@ public class HANStack<T> implements IHANStack<T> {
         return stackhead == null? null:stackhead.value;
     }
 
-    public boolean isEmpty() {
-        return null == stackhead;
-    }
 
-    public int size() {
-        int countOfStack = 0;
-        Node<T> currentItem = stackhead;
-        while (currentItem != null) {
-            countOfStack++;
-            currentItem = currentItem.next;
-        }
-        return countOfStack;
-    }
 }

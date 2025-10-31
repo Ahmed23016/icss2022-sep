@@ -41,3 +41,5 @@ out/
 *.log
 *.out
 **/target
+startcode/src/main/resources/another.puml
+startcode/src/main/resources/test.puml
