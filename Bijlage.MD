@@ -10,8 +10,7 @@
 
 ## 1. Overzicht
 
-
-De ICSS-compiler is volledig werkend opgebouwd volgens de opgegeven architectuur en de specificaties van de ICSS-20-SEP taal.
+Dit is mijn eigen beoordeling van mijn eigen compiler.
 De implementatie bestaat uit de volgende componenten:
 
 * **Parser**
@@ -20,17 +19,16 @@ De implementatie bestaat uit de volgende componenten:
 * **Generator**
 * **Eigen Stack-implementatie** 
 
-Alle onderdelen zijn geintegreerd en getest met `level0.icss` t/m `level3.icss` en eigen tests.
 
 
 ## 2. Parser (40 punten)
 
 | ID       | Omschrijving                                                                                      | Prio | Punten | Status      | Toelichting                                                |
-| -------- | ------------------------------------------------------------------------------------------------- | ---- | ------ | ----------- | ---------------------------------------------------------- |
+| -------- | ------------------------------------------------------------------------------------------------- | ---- | ------ | ----------- |------------------------------------------------------------|
 | **PA00** | De parser gebruikt een eigen implementatie van een stack generic voor `ASTNode`                   | Must | 0      | **Behaald** | `HANStack<T>` geïmplementeerd en gebruikt in `ASTListener` |
 | **PA01** | Parser en listener kunnen eenvoudige opmaak verwerken (`level0.icss`)                             | Must | 10     | **Behaald** | Ondersteunt tags, id’s, classes en basale declaraties      |
 | **PA02** | Parser ondersteunt variabele-assignments en referenties (`level1.icss`)                           | Must | 10     | **Behaald** | Variabelen met `:=` correct toegevoegd aan AST             |
-| **PA03** | Parser ondersteunt optellen, aftrekken en vermenigvuldigen met juiste rekenregels (`level2.icss`) | Must | 10     | **Behaald** | Operatorprecedentie correct geïmplementeerd                |
+| **PA03** | Parser ondersteunt optellen, aftrekken en vermenigvuldigen met juiste rekenregels (`level2.icss`) | Must | 10     | **Behaald** | Operatorprecedentie correct geimplementeerd                |
 | **PA04** | Parser ondersteunt if/else-statements (`level3.icss`)                                             | Must | 10     | **Behaald** | Nested if/else wordt volledig ondersteund                  |
 | **PA05** | PA01 t/m PA04 leveren minimaal 30 punten op                                                       | Must | 0      | **Behaald** | Volledige parser-functionaliteit aanwezig                  |
 
@@ -40,8 +38,8 @@ Alle onderdelen zijn geintegreerd en getest met `level0.icss` t/m `level3.icss` 
 ## 3. Checker (30 punten)
 
 | ID       | Omschrijving                                     | Prio   | Punten | Status      | Toelichting                                      |
-| -------- | ------------------------------------------------ | ------ | ------ | ----------- | ------------------------------------------------ |
-| **CH00** | Minimaal vier checks geïmplementeerd             | Must   | 0      | **Behaald** | Alle zes checks geïmplementeerd                  |
+| -------- | ------------------------------------------------ | ------ | ------ | ----------- |--------------------------------------------------|
+| **CH00** | Minimaal vier checks geïmplementeerd             | Must   | 0      | **Behaald** | Alle zes checks geimplementeerd                  |
 | **CH01** | Controle op ongedefinieerde variabelen           | Should | 5      | **Behaald** | Variabelen gecontroleerd via scope-stack         |
 | **CH02** | Controle op operandtypes bij `+`, `-`, `*`       | Should | 5      | **Behaald** | Pixel, percentage en scalar correct gevalideerd  |
 | **CH03** | Controle dat kleuren niet in operaties voorkomen | Should | 5      | **Behaald** | Kleur-literals geblokkeerd in expressies         |
@@ -64,10 +62,10 @@ Alle onderdelen zijn geintegreerd en getest met `level0.icss` t/m `level3.icss` 
 
 ## 5. Generator (10 punten)
 
-| ID       | Omschrijving                                    | Prio | Punten | Status      | Toelichting                                 |
-| -------- | ----------------------------------------------- | ---- | ------ | ----------- | ------------------------------------------- |
+| ID       | Omschrijving                                    | Prio | Punten | Status      | Toelichting                                |
+| -------- | ----------------------------------------------- | ---- | ------ | ----------- | ------------------------------------------ |
 | **GE01** | Generator zet AST om naar CSS2-compliant string | Must | 5      | **Behaald** | Correcte CSS2-structuur met alle properties |
-| **GE02** | Twee spaties inspringing per scopeniveau        | Must | 5      | **Behaald** | Indentatie consistent toegepast             |
+| **GE02** | Twee spaties inspringing per scopeniveau        | Must | 5      | **Behaald** | Indentatie toegepast             |
 
 **Totaal Generator:** 10 punten
 
