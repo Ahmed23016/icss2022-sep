@@ -1,7 +1,3 @@
-Prima. Hier is je **"Bijlage – Functioneel Overzicht ICSS Compiler"** opnieuw opgesteld, maar nu met de **exacte tabellen en structuur uit het officiële beoordelingsdocument** ingevuld volgens wat jouw compiler implementeert en behaalt.
-
----
-
 # Bijlage – Functioneel Overzicht ICSS Compiler
 
 | Student       | Ahmed Ammoura     |
@@ -13,6 +9,7 @@ Prima. Hier is je **"Bijlage – Functioneel Overzicht ICSS Compiler"** opnieuw 
 
 
 ## 1. Overzicht
+
 
 De ICSS-compiler is volledig werkend opgebouwd volgens de opgegeven architectuur en de specificaties van de ICSS-20-SEP taal.
 De implementatie bestaat uit de volgende componenten:
