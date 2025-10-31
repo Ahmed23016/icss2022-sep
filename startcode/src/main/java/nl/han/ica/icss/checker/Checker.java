@@ -58,7 +58,7 @@ public class Checker {
     }
 
 
-    private ExpressionType getType(Expression expr) {
+    private ExpressionType checkType(Expression expr) {
         if (expr instanceof PixelLiteral) {
             return ExpressionType.PIXEL;
         }
@@ -93,8 +93,8 @@ public class Checker {
     }
 
     private ExpressionType checkOperation(Operation op) {
-        ExpressionType left = getType(op.lhs);
-        ExpressionType right = getType(op.rhs);
+        ExpressionType left = checkType(op.lhs);
+        ExpressionType right = checkType(op.rhs);
 
         if (left == ExpressionType.COLOR || right == ExpressionType.COLOR) {
             op.setError("Kleuren mogen niet gebruikt worden in operaties.");
@@ -132,7 +132,7 @@ public class Checker {
             }
         }
 
-        getType(declaration.expression);
+        checkType(declaration.expression);
 
 
         var allowed = ALLOWED_TYPES_FOR_PROPERTY.get(declaration.property.name.toLowerCase());
@@ -152,13 +152,13 @@ public class Checker {
     }
 
     private void checkVariableAssignment(VariableAssignment varassin) {
-        ExpressionType expresiontype = getType(varassin.expression);
+        ExpressionType expresiontype = checkType(varassin.expression);
         safedepositOfVariableAssignments.peek().put(varassin.name.name, expresiontype);
     }
 
     private void checkIfClause(IfClause ifClause) {
         safedepositOfVariableAssignments.push(new HashMap<>());
-        ExpressionType condType = getType(ifClause.conditionalExpression);
+        ExpressionType condType = checkType(ifClause.conditionalExpression);
         if (condType != ExpressionType.BOOL) {
             ifClause.setError("If clause conditie moet boolean zijn.");
         }
