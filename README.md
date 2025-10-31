@@ -3,7 +3,6 @@ This file contains notes and issues for the ICSSTool.
 For assignment instructions, see [ASSIGNMENT.md](ASSIGNMENT.md)
 This tutorial is tested with Java version 17 (OpenJDK), IntelliJ and Maven. To enable instructors to assess your work you will need to keep your solution OpenJDK 13 compliant. Oracle or other distributions of the Java SDK/Runtime are not allowed.
 
-
 ## Running ICSSTool
 ICSSTool is a `pom.xml` based, Maven-runnable application.
 You can compile the application with the following command:
