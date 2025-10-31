@@ -6,6 +6,7 @@
 | Studentnummer | 2130051           |
 | Datum         | 31/10/2025        |
 | Docent        | Dennis Breuker    |
+  | Klas | ITA-CNI-A-s|
 
 
 ## 1. Overzicht
@@ -86,3 +87,11 @@ Geen uitbreiding geïmplementeerd.
 | Uitbreiding | Geen         | 0                        |
 | Totaal  | Geen         | 100 / 120 volgens mij :) |
 
+
+
+## Gebruik van AI
+Voor het maken van deze bijlage heb ik AI gebruikt om de structuur en tabellen op te zetten op basis van het document `assignment.md` .
+
+De inhoud, toelichtingen en beschrijvingen zijn volledig door mijzelf geschreven.
+
+Het hulpmiddel is alleen gebruikt voor de opmaak, niet voor de inhoud van de opdracht.
