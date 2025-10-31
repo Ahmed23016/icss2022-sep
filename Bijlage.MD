@@ -14,13 +14,13 @@
 De ICSS-compiler is volledig werkend opgebouwd volgens de opgegeven architectuur en de specificaties van de ICSS-20-SEP taal.
 De implementatie bestaat uit de volgende componenten:
 
-* **Parser** – ANTLR-grammatica en listener die de parse tree omzet naar een AST
-* **Checker** – controleert semantische correctheid en scope
-* **Evaluator** – transformeert de AST, evalueert expressies en verwijdert if/else-constructies
-* **Generator** – genereert geldige CSS2-code
-* **Eigen Stack-implementatie** – `HANStack<T>` voor de AST-opbouw
+* **Parser**
+* **Checker** 
+* **Evaluator** 
+* **Generator**
+* **Eigen Stack-implementatie** 
 
-Alle onderdelen zijn geïntegreerd en getest met `level0.icss` t/m `level3.icss` en eigen tests.
+Alle onderdelen zijn geintegreerd en getest met `level0.icss` t/m `level3.icss` en eigen tests.
 
 
 ## 2. Parser (40 punten)
